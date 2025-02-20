@@ -2,13 +2,14 @@ const path = require("path");
 const MiniCssExtractPlugin = require("mini-css-extract-plugin");
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const CssMinimizerPlugin = require("css-minimizer-webpack-plugin");
+const CopyWebpackPlugin = require("copy-webpack-plugin");
 
 module.exports = {
   entry: {
     global: path.resolve(__dirname, "global.js"),
     index: path.resolve(__dirname, "index.js"),
-    // listProducts: "./list-products.js",
-    // addProducts: "./add-products.js",
+    listProducts: "./list-products.js",
+    // addProducts: "./add-products.js", // optional if needed later
   },
   output: {
     path: path.resolve(__dirname, "dist"),
@@ -20,15 +21,19 @@ module.exports = {
     rules: [
       {
         test: /\.scss$/,
-        use: [MiniCssExtractPlugin.loader, "css-loader", {
-          loader: "sass-loader",
-          options: {
-            sassOptions: {
-              quietDeps: true,
-              includePaths: [path.resolve(__dirname, "node_modules")],
+        use: [
+          MiniCssExtractPlugin.loader,
+          "css-loader",
+          {
+            loader: "sass-loader",
+            options: {
+              sassOptions: {
+                quietDeps: true,
+                includePaths: [path.resolve(__dirname, "node_modules")],
+              },
             },
           },
-        },],
+        ],
       },
       {
         test: /\.js$/,
@@ -37,18 +42,18 @@ module.exports = {
       },
       {
         test: /\.(png|jpg|gif)$/,
-        type: "asset/resource", // Para copiar arquivos de imagem
+        type: "asset/resource",
         generator: {
-          filename: 'assets/images/[name][hash][ext][query]', // Colocando as imagens dentro de assets/images/
+          filename: "assets/images/[name][hash][ext][query]",
         },
       },
       {
         test: /\.(woff(2)?|eot|ttf)$/,
-        type: "asset/resource", // Para copiar arquivos de fontes
+        type: "asset/resource",
         generator: {
-          filename: 'assets/fonts/[name][hash][ext][query]', // Colocando as fontes dentro de assets/fonts/
+          filename: "assets/fonts/[name][hash][ext][query]",
         },
-      },      
+      },
     ],
   },
   plugins: [
@@ -60,11 +65,16 @@ module.exports = {
       chunks: ["global", "index"],
       filename: "index.html",
     }),
-    // new HtmlWebpackPlugin({
-    //   template: "./list-products.html",
-    //   chunks: ["listProducts", "global"],
-    //   filename: "list-products.html",
-    // }),
+    new HtmlWebpackPlugin({
+      template: "./list-products.html",
+      chunks: ["global", "listProducts"],
+      filename: "list-products.html",
+    }),
+    new CopyWebpackPlugin({
+      patterns: [
+        { from: "assets/images", to: "assets/images" },
+      ],
+    }),
     // new HtmlWebpackPlugin({
     //   template: "./add-products.html",
     //   chunks: ["addProducts", "global"],
@@ -73,10 +83,7 @@ module.exports = {
   ],
   optimization: {
     minimize: true,
-    minimizer: [
-      `...`,
-      new CssMinimizerPlugin(),
-    ],
+    minimizer: [`...`, new CssMinimizerPlugin()],
   },
   devServer: {
     static: "./dist",
